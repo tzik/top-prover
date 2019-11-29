@@ -1,0 +1,56 @@
+#!/bin/bash
+
+cd "$(dirname "$0")"
+
+exec {fd}> status.md
+cat >&${fd} <<EOF
+## [TopProver](http://top-prover.top/) Challenge Log
+
+### Status
+
+EOF
+
+clear=$'\e[0G\e[0J'
+reset_color=$'\e[0m'
+for i in tasks/*; do
+  task_dir="$(dirname "$i")"
+  if [ ! -e "$i/Makefile" ]; then
+    pushd "$i" > /dev/null 2>&1
+      coq_makefile -f "_CoqProject" -o "Makefile"
+    popd > /dev/null 2>&1
+  fi
+
+  if [ -e "${i}/description" ]; then
+      desc="$(head -n1 "${i}/description")"
+  else
+      desc="$(basename "#${i}")"
+  fi
+  status='[CHECKING]'
+  color=$'\e[36m'
+  printf '%s%s%s%s %s' "${clear}" "${color}" "${status}" "${reset_color}" "${desc}"
+  if make -C"$i" > /dev/null 2>&1; then
+    if grep 'Admitted\.' "${i}/Solution.v" > /dev/null 2>&1; then
+      rv=1
+      badge=$'\U274c'
+      color=$'\e[36m'
+      status='[PENDING]'
+    else
+      rv=0
+      badge=$'\U2714'
+      color=$'\e[32m'
+      status='[PASS]'
+    fi
+  else
+    rv="$?"
+    badge=$'\U274c'
+    color=$'\e[31m'
+    status='[FAIL]'
+  fi
+  if [ "$rv" -ne 0 ]; then
+    printf '%s%s%s%s %s\n' "${clear}" "${color}" "${status}" "${reset_color}" "${desc}"
+  fi
+  printf -- '- %s %s [%s](%s)\n' "${badge}" "${status}" "${desc}" "${i}/Solution.v" >&${fd}
+done
+
+printf '\e[0G\e[0J'
+exec {fd}>&-

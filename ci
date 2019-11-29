@@ -1,0 +1,9 @@
+#!/bin/bash
+cd "$(dirname "$0")"
+exec docker \
+  run --rm \
+  -w "/work" \
+  -v "${PWD}:/work" \
+  -u "$(id -u):$(id -g)" \
+  mathcomp/mathcomp:latest-coq-dev \
+  "./verify" "$@"

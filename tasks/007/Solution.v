@@ -1,0 +1,76 @@
+Require Import Problem PeanoNat Omega.
+
+Definition f m n := product_of_range m n.
+
+Lemma extract_l (m n : nat) : f m (S n) = S m * f (S m) n.
+Proof.
+  simpl.
+  auto.
+Qed.
+
+Lemma extract_r (m n : nat) : f m (S n) = (m + S n) * f m n.
+Proof.
+  generalize m; clear m.
+  induction n; intros.
+  simpl; omega.
+  rewrite extract_l.
+  rewrite IHn.
+  rewrite extract_l.
+  remember (f (S m) n) as k.
+  clear Heqk IHn.
+  remember (S n) as n'; clear Heqn' n.
+  rewrite Nat.add_succ_comm.
+  remember (m + S n') as a; clear Heqa n'.
+  repeat rewrite Nat.mul_assoc.
+  rewrite (Nat.mul_comm (S m) a).
+  omega.
+Qed.
+
+Lemma extract_r_0 (n : nat) : f 0 (S n) = S n * f 0 n.
+Proof.
+  intros.
+  rewrite (extract_r 0 n).
+  auto.
+Qed.
+
+Lemma lemma (o m n : nat) : m + n = o -> exists k, f m n = k * f 0 n.
+Proof.
+  generalize m n; clear m n.
+  induction o; intros.
+  destruct (Nat.eq_add_0 m n); clear H1.
+  destruct (H0 H); clear H H0.
+  subst m n; exists 1; omega.
+  destruct m; simpl; destruct n.
+  discriminate.
+  exists 1; omega.
+  exists 1; simpl; omega.
+  assert (m + S n = o). omega.
+  assert (S m + n = o). omega.
+  clear H.
+  destruct (IHo m (S n) H0) as [x]; clear H0.
+  destruct (IHo (S m) n H1) as [y]; clear H1.
+  clear IHo o.
+  rewrite extract_r.
+  rewrite Nat.mul_add_distr_r.
+  rewrite <- extract_l.
+  rewrite H; clear H.
+  rewrite H0; clear H0.
+  rewrite Nat.mul_assoc.
+  rewrite (Nat.mul_comm (S n) y).
+  rewrite <- Nat.mul_assoc.
+  replace (S n * f 0 n) with (f 0 (S n)).
+  exists (x + y).
+  remember (f 0 (S n)) as a; clear Heqa m n.
+  rewrite Nat.mul_add_distr_r; auto.
+  rewrite extract_r; auto.
+Qed.
+
+Theorem solution : task.
+Proof.
+  unfold Problem.task.
+  intros m n.
+  destruct (lemma (m + n) m n eq_refl) as [k].
+  exists k.
+  unfold f in H.
+  omega.
+Qed.

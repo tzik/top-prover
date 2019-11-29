@@ -1,0 +1,1 @@
+#9: forall l: list nat, l @ [0] <> []

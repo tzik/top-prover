@@ -1,0 +1,1 @@
+Definition task := forall n m, n * S m = n + n * m.

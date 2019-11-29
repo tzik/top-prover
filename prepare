@@ -1,0 +1,45 @@
+#!/bin/bash
+set -ex
+
+cd "$(dirname "$0")/tasks"
+if [ "$#" -ne 1 ] || [ -e "$1" ]; then
+  exit 1
+fi
+
+mkdir -p "$1"
+cd "$1"
+cat > _CoqProject <<EOF
+-R . Top
+Problem.v
+Solution.v
+Checker.v
+EOF
+
+cat > Problem.v <<EOF
+Definition task := False.
+EOF
+
+cat > Solution.v <<EOF
+Require Import Problem.
+
+Theorem solution : task.
+Proof.
+  unfold Problem.task.
+Admitted.
+EOF
+
+cat > Checker.v <<EOF
+Require Problem Solution.
+Theorem checker : Problem.task.
+Proof. exact Solution.solution. Qed.
+EOF
+
+cat > .gitignore <<EOF
+/*.glob
+/*.vo
+/Makefile
+/Makefile.conf
+EOF
+
+coq_makefile -f _CoqProject -o Makefile
+make

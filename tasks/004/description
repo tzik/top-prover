@@ -1,0 +1,1 @@
+#4: forall f: bool -> bool, f^3(x) = f(x)

@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+id="$1"
+task_dir="$(printf "tasks/%03d" "${id}")"
+
+server="https://top-prover.top"
+mkdir -p "${task_dir}"
+
+curl -s -f -b .cookie -o "${task_dir}/main.html" "${server}/problem/${id}"
+sed -n 's:^<h2>\(.*\)</h2>$:\1:p' "${task_dir}/main.html" > "${task_dir}/description"
+sed -i -e 's:&lt;:<:g' -e 's:&gt;:>:g' "${task_dir}/description"
+cat "${task_dir}/description"
+
+curl -s -f -b .cookie -o "${task_dir}/Problem.v" "${server}/problem_content/${id}"
+curl -s -f -b .cookie -o "${task_dir}/Example.v" "${server}/example_content/${id}"
+curl -s -f -b .cookie -o "${task_dir}/Checker.v" "${server}/checker_content/${id}"
+
+if [ ! -e "${task_dir}/Solution.v" ]; then
+  sed 's/^Qed\./Admitted./' "${task_dir}/Example.v" > "${task_dir}/Solution.v"
+fi
+
+cat > "${task_dir}/_CoqProject" <<EOF
+-R . Top
+Problem.v
+Solution.v
+Checker.v
+EOF
+
+cat > "${task_dir}/.gitignore" <<EOF
+/*.glob
+/*.vo
+/Makefile
+/Makefile.conf
+EOF
