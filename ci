@@ -5,5 +5,5 @@ exec docker \
   -w "/work" \
   -v "${PWD}:/work" \
   -u "$(id -u):$(id -g)" \
-  mathcomp/mathcomp:latest-coq-dev \
+  coqorg/coq:8.9 \
   "./verify" "$@"
