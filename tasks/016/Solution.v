@@ -9,9 +9,8 @@ Proof.
   induction n.
   - apply gcd_O.
   - apply gcd_swap.
-    replace (S n) with (1 + n).
+    replace (S n) with (1 + n) by auto.
     apply gcd_step.
     apply gcd_swap.
-    auto.
     auto.
 Qed.

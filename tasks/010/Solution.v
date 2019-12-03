@@ -5,16 +5,14 @@ Lemma lemma : forall l1 l2 a b,
     plus_list (prefix_sum a l1) (prefix_sum b l2).
 Proof.
   induction l1.
-  destruct l2; simpl; auto.
-  destruct l2.
-  simpl.
-  destruct l1; simpl; auto.
-  simpl.
-  intros.
-  rewrite <- (IHl1 l2 (a0 + a) (b + n)).
-  replace (a0 + b + (a + n)) with (a0 + a + (b + n)).
-  auto.
-  omega.
+  - destruct l2; simpl; auto.
+  - destruct l2.
+    destruct l1; simpl; auto.
+    simpl.
+    intros.
+    rewrite <- (IHl1 l2 (a0 + a) (b + n)).
+    replace (a0 + b + (a + n)) with (a0 + a + (b + n)) by omega.
+    auto.
 Qed.
 
 Theorem solution: task.

@@ -22,10 +22,9 @@ Proof.
   intros.
   induction l.
   - auto.
-  - replace (rev (a :: l)) with (rev l ++ a :: nil).
+  - replace (rev (a :: l)) with (rev l ++ a :: nil) by auto.
     rewrite lemma.
     simpl.
     rewrite IHl.
-    auto.
     auto.
 Qed.
