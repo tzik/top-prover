@@ -2,7 +2,7 @@
 
 cd "$(dirname "$0")"
 
-exec {fd}> status.md
+exec {fd}> README.md
 cat >&${fd} <<EOF
 ## [TopProver](http://top-prover.top/) Challenge Log
 
