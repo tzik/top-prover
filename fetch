@@ -29,8 +29,13 @@ Checker.v
 EOF
 
 cat > "${task_dir}/.gitignore" <<EOF
+/*.aux
+/*.d
 /*.glob
 /*.vo
+/*.vok
+/*.vos
 /Makefile
 /Makefile.conf
+/main.html
 EOF
