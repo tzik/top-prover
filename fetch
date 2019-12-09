@@ -17,6 +17,8 @@ curl -s -f -b .cookie -o "${task_dir}/Problem.v" "${server}/problem_content/${id
 curl -s -f -b .cookie -o "${task_dir}/Example.v" "${server}/example_content/${id}"
 curl -s -f -b .cookie -o "${task_dir}/Checker.v" "${server}/checker_content/${id}"
 
+nkf -Lu -d --in-place "${task_dir}"/{Problem,Example,Checker}.v
+
 if [ ! -e "${task_dir}/Solution.v" ]; then
   sed 's/^Qed\./Admitted./' "${task_dir}/Example.v" > "${task_dir}/Solution.v"
 fi
