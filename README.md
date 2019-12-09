@@ -41,4 +41,4 @@
 - ✔ [PASS] [#37: Zero test](tasks/037/Solution.v)
 - ✔ [PASS] [#38: Midpoint](tasks/038/Solution.v)
 - ✔ [PASS] [#39: Boolean-hole principle revisited](tasks/039/Solution.v)
-- ❌ [PENDING] [#40: Binary search](tasks/040/Solution.v)
+- ✔ [PASS] [#40: Binary search](tasks/040/Solution.v)
