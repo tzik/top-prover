@@ -26,48 +26,34 @@ Proof.
   unfold task.
   intros f H l r.
   remember (r - l) as k.
-  assert (r <= k + l) by omega; clear Heqk.
+  assert (r <= S k + l) by omega; clear Heqk.
   revert l r H0.
-  induction k; intros.
-  omega.
 
-  assert (S l = r \/ S l < r) by omega.
-  destruct H4.
-  - exists 1.
+  induction k; intros.
+  - assert (S l = r) by omega.
     subst r.
+    clear H0 H1.
+    exists 0.
     simpl.
     rewrite Nat.eqb_refl.
     apply boundary; auto.
-  - specialize (midpoint l r H4); intro.
-    clear H4 H1.
-    remember ((l + r) / 2) as m.
-    remember (f m) as b.
-    assert (f m = b) by auto; clear Heqb.
-    destruct b.
-    * assert (r <= k + m) by omega.
-      specialize (IHk m r H4 (proj2 H5) H1 H3).
-      destruct IHk.
-      exists (S x).
-      simpl.
-      fold ((l + r) / 2); rewrite <- Heqm.
+  - cut (exists k0 : nat, forall n : nat, f n = true <-> n <= binsearch f l r (S k0)).
+    * intro; destruct H4; exists (S x); auto.
+    * simpl.
       destruct r.
-      exfalso; omega.
-      assert (l <> r) by omega.
-      apply Nat.eqb_neq in H7.
-      rewrite H7.
-      rewrite H1.
-      auto.
-    * assert (m <= k + l) by omega.
-      specialize (IHk l m H4 (proj1 H5) H2 H1).
-      destruct IHk.
-      exists (S x).
-      simpl.
-      fold ((l + r) / 2); rewrite <- Heqm.
-      destruct r.
-      exfalso; omega.
-      assert (l <> r) by omega.
-      apply Nat.eqb_neq in H7.
-      rewrite H7.
-      rewrite H1.
-      auto.
+      + exfalso; omega.
+      + assert (l = r \/ l < r) by omega.
+        destruct H4.
+        -- subst r.
+           rewrite Nat.eqb_refl.
+           exists 0.
+           apply boundary; auto.
+        -- assert (l <> r) by omega.
+           apply Nat.eqb_neq in H5.
+           rewrite H5; clear H5.
+           fold ((l + S r) / 2).
+           assert (l < (l + S r) / 2 < S r) by (apply midpoint; omega).
+           remember (((l + S r) / 2)) as m.
+           remember (f m).
+           destruct b; apply IHk; auto; omega.
 Qed.
