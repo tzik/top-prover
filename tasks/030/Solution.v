@@ -1,30 +1,19 @@
 Require Import Problem PeanoNat Omega.
 
-Lemma lemma : forall m n, n <= m -> double n = 2 * n.
-Proof.
-  induction m; intros.
-  specialize (Nat.le_0_r n); intro.
-  destruct H0.
-  rewrite (H0 H).
-  simpl.
-  omega.
-
-  destruct n. simpl. omega.
-  destruct n. simpl. omega.
-
-  remember (2 * S (S n)) as k.
-  simpl.
-
-  assert (n <= m).
-  omega.
-  rewrite (IHm n H0).
-  subst k.
-  omega.
-Qed.
-
 Theorem solution : task.
 Proof.
-  unfold Problem.task.
+  unfold task.
   intro.
-  exact (lemma n n (Nat.le_refl n)).
+  remember n as m.
+  assert (m <= n) by omega; clear Heqm.
+  revert m H.
+
+  induction n; intros.
+  - apply Nat.le_0_r in H; subst m; auto.
+  - do 2 (destruct m; [auto|]).
+    assert (m <= n) by omega.
+    apply IHn in H0.
+    simpl.
+    rewrite H0.
+    omega.
 Qed.

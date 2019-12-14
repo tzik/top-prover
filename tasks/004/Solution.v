@@ -2,7 +2,7 @@ Require Import Problem.
 
 Theorem solution : task.
 Proof.
-  unfold Problem.task.
+  unfold task.
   intros.
   remember (f b) as x; remember (f (negb b)) as y.
   destruct b; destruct x; repeat rewrite <- Heqx; auto.

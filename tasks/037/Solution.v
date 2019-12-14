@@ -4,9 +4,8 @@ Theorem solution: task.
 Proof.
   unfold task.
   split; intros.
-  - induction H.
-    * auto.
-    * inversion IHiszero.
+  - induction H; [auto|].
+    inversion IHiszero.
   - subst n.
     constructor.
 Qed.

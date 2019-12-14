@@ -2,8 +2,9 @@ Require Import Problem.
 
 Theorem solution : task.
 Proof.
-  unfold Problem.task.
+  unfold task.
   split; intros.
-  apply (R_trans x y z); auto.
-  exact (H y (R_refl y)).
+  - apply (R_trans x y z); auto.
+  - apply H.
+    apply R_refl.
 Qed.

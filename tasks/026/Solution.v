@@ -1,20 +1,12 @@
-Require Import Problem PeanoNat.
+Require Import Problem PeanoNat Omega.
 
 Theorem solution : task.
 Proof.
-  unfold Problem.task.
+  unfold task.
   intros.
-  destruct m; try destruct m; try destruct m; destruct n; try destruct n; try destruct n.
-  all: simpl in H; try auto; try discriminate.
-
-  inversion H; clear H.
-  rewrite Nat.add_comm in H1.
-  discriminate.
-
-  rewrite Nat.mul_comm in H.
-  discriminate.
-
-  inversion H; clear H.
-  rewrite Nat.add_comm in H1.
-  discriminate.
+  do 2 (try destruct m; try destruct n; try omega).
+  exfalso.
+  simpl in H.
+  rewrite Nat.add_comm in H.
+  inversion H.
 Qed.

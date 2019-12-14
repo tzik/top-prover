@@ -5,11 +5,8 @@ Proof.
   unfold task.
   unfold injective1.
   unfold injective2.
-  split; intros.
-  - contradict H0.
-    auto.
-  - destruct (Nat.eq_dec m n).
-    * auto.
-    * specialize (H m n n0 H0).
-      contradiction.
+  split; intros; [auto|].
+  destruct (Nat.eq_dec m n); [auto|].
+  apply H in n0.
+  contradiction.
 Qed.

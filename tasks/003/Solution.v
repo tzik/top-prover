@@ -2,6 +2,6 @@ Require Import Problem.
 
 Theorem solution : task.
 Proof.
-  unfold Problem.task.
+  unfold task.
   auto.
 Qed.

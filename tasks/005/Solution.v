@@ -2,7 +2,7 @@ Require Import Problem PeanoNat.
 
 Theorem solution : task.
 Proof.
-  unfold Problem.task.
+  unfold task.
   intros.
   rewrite Nat.mul_comm.
   simpl.

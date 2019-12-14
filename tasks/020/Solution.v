@@ -2,27 +2,26 @@ Require Import Problem List Omega.
 
 Lemma decomp (xs : list nat) : xs = nil \/ (exists ys zs, xs = ys ++ (0 :: nil) ++ zs) \/ (exists ys, xs = map S ys).
 Proof.
-  induction xs.
-  - auto.
-  - destruct IHxs.
-    * subst xs.
-      right.
-      destruct a.
-      + left; exists nil; exists nil; auto.
-      + right; exists (a :: nil); simpl; auto.
-    * right.
-      destruct a.
-      + left; exists nil; exists xs; simpl; auto.
-      + destruct H.
-        -- destruct H; destruct H.
-           left; exists (S a :: x); exists x0.
-           rewrite H.
-           auto.
-        -- right.
-           destruct H.
-           subst xs.
-           exists (a :: x).
-           simpl; auto.
+  induction xs; [auto|].
+  destruct IHxs.
+  - subst xs.
+    right.
+    destruct a.
+    * left; exists nil; exists nil; auto.
+    * right; exists (a :: nil); simpl; auto.
+  - right.
+    destruct a.
+    * left; exists nil; exists xs; simpl; auto.
+    * destruct H.
+      + destruct H; destruct H.
+        left; exists (S a :: x); exists x0.
+        rewrite H.
+        auto.
+      + right.
+        destruct H.
+        subst xs.
+        exists (a :: x).
+        simpl; auto.
 Qed.
 
 Definition maximum := fold_right max 0.
@@ -48,55 +47,48 @@ Qed.
 
 Lemma length_hom : forall xs ys : list nat, length (xs ++ ys) = length xs + length ys.
 Proof.
-  induction xs; simpl.
-  - auto.
-  - intros.
-    rewrite IHxs.
-    auto.
+  induction xs; simpl; [auto|].
+  intros.
+  rewrite IHxs.
+  auto.
 Qed.
 
 Lemma maximum_hom : forall xs ys : list nat, maximum (xs ++ ys) = max (maximum xs) (maximum ys).
 Proof.
-  induction xs; simpl.
-  - auto.
-  - intro.
-    rewrite IHxs.
-    rewrite Nat.max_assoc.
-    auto.
+  induction xs; simpl; [auto|].
+  intro.
+  rewrite IHxs.
+  rewrite Nat.max_assoc.
+  auto.
 Qed.
 
 Lemma c2_succ : forall x xs, compute2 (map S (x :: xs)) = S (compute2 (x :: xs)).
 Proof.
   intros; generalize x; clear x.
-  induction xs.
-  - simpl; auto.
-  - intros.
-    specialize (IHxs a).
-    assert (forall y z ws, compute2 (y :: z :: ws) = compute2 (z :: ws) + (y - min y z)) by (intros; simpl; omega).
-    rewrite H.
-    rewrite <- Nat.add_succ_l.
-    rewrite <- IHxs.
-    simpl; omega.
+  induction xs; [simpl; auto|].
+  intros.
+  specialize (IHxs a).
+  assert (forall y z ws, compute2 (y :: z :: ws) = compute2 (z :: ws) + (y - min y z)) by (intros; simpl; omega).
+  rewrite H.
+  rewrite <- Nat.add_succ_l.
+  rewrite <- IHxs.
+  simpl; omega.
 Qed.
 
 Lemma map_S : forall xs, map S xs = map (fun x => S x) xs.
 Proof.
-  induction xs; simpl.
-  - auto.
-  - rewrite IHxs; auto.
+  induction xs; simpl; [auto|].
+  rewrite IHxs; auto.
 Qed.
 
 Lemma length_map : forall xs, length (map S xs) = length xs.
 Proof.
-  induction xs; simpl.
-  - auto.
-  - rewrite IHxs.
-    auto.
+  induction xs; simpl; [|rewrite IHxs]; auto.
 Qed.
 
 Lemma maximum_S : forall x xs, maximum (map S (x :: xs)) = S (maximum (x :: xs)).
 Proof.
-  intros; generalize x; clear x.
+  intros; revert x.
   induction xs; intros.
   - simpl.
     rewrite Nat.max_0_r.
@@ -113,13 +105,13 @@ Proof.
 
   remember (length l + maximum l) as k.
   apply eq_sym in Heqk; apply Nat.eq_le_incl in Heqk.
-  generalize l Heqk; clear l Heqk.
+  revert l Heqk.
 
   induction k; intros.
   - assert (length l = 0) by omega; clear Heqk.
     destruct l.
-    simpl; constructor.
-    simpl in H; discriminate.
+    * simpl; constructor.
+    * simpl in H; discriminate.
   - destruct (decomp l).
     * subst l; simpl; constructor.
     * destruct H.

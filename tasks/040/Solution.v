@@ -14,11 +14,10 @@ Proof.
   intros.
   split; intro.
   - assert (n <= m \/ S m <= n) by omega.
-    destruct H3.
-    auto.
+    destruct H3; [auto|].
     rewrite (H (S m) n H3 H2) in H1.
     discriminate.
-  - apply (H n m H2 H0).
+  - apply (H n m); auto.
 Qed.
 
 Theorem solution: task.
@@ -40,20 +39,19 @@ Proof.
   - cut (exists k0 : nat, forall n : nat, f n = true <-> n <= binsearch f l r (S k0)).
     * intro; destruct H4; exists (S x); auto.
     * simpl.
-      destruct r.
-      + exfalso; omega.
-      + assert (l = r \/ l < r) by omega.
-        destruct H4.
-        -- subst r.
-           rewrite Nat.eqb_refl.
-           exists 0.
-           apply boundary; auto.
-        -- assert (l <> r) by omega.
-           apply Nat.eqb_neq in H5.
-           rewrite H5; clear H5.
-           fold ((l + S r) / 2).
-           assert (l < (l + S r) / 2 < S r) by (apply midpoint; omega).
-           remember (((l + S r) / 2)) as m.
-           remember (f m).
-           destruct b; apply IHk; auto; omega.
+      destruct r; [exfalso; omega|].
+      assert (l = r \/ l < r) by omega.
+      destruct H4.
+      + subst r.
+        rewrite Nat.eqb_refl.
+        exists 0.
+        apply boundary; auto.
+      + assert (l <> r) by omega.
+        apply Nat.eqb_neq in H5.
+        rewrite H5; clear H5.
+        fold ((l + S r) / 2).
+        assert (l < (l + S r) / 2 < S r) by (apply midpoint; omega).
+        remember (((l + S r) / 2)) as m.
+        remember (f m).
+        destruct b; apply IHk; auto; omega.
 Qed.

@@ -10,19 +10,18 @@ Qed.
 
 Lemma extract_r (m n : nat) : f m (S n) = (m + S n) * f m n.
 Proof.
-  generalize m; clear m.
-  induction n; intros.
-  - simpl; omega.
-  - rewrite extract_l.
-    rewrite IHn; clear IHn.
-    rewrite extract_l.
-    remember (f (S m) n) as k eqn:H; clear H.
-    remember (S n) as n' eqn:H; clear H n.
-    rewrite Nat.add_succ_comm.
-    remember (m + S n') as a eqn:H; clear H n'.
-    repeat rewrite Nat.mul_assoc.
-    rewrite (Nat.mul_comm (S m) a).
-    omega.
+  revert m.
+  induction n; intros; [simpl; omega|].
+  rewrite extract_l.
+  rewrite IHn; clear IHn.
+  rewrite extract_l.
+  remember (f (S m) n) as k eqn:H; clear H.
+  remember (S n) as n' eqn:H; clear H n.
+  rewrite Nat.add_succ_comm.
+  remember (m + S n') as a eqn:H; clear H n'.
+  repeat rewrite Nat.mul_assoc.
+  rewrite (Nat.mul_comm (S m) a).
+  omega.
 Qed.
 
 Lemma extract_r_0 (n : nat) : f 0 (S n) = S n * f 0 n.
@@ -34,7 +33,7 @@ Qed.
 
 Lemma lemma (o m n : nat) : m + n = o -> exists k, f m n = k * f 0 n.
 Proof.
-  generalize m n; clear m n.
+  revert m n.
   induction o; intros.
   - apply Nat.eq_add_0 in H; destruct H.
     subst m n; exists 1; auto.
@@ -64,7 +63,7 @@ Qed.
 
 Theorem solution : task.
 Proof.
-  unfold Problem.task.
+  unfold task.
   intros m n.
   destruct (lemma (m + n) m n eq_refl) as [k].
   exists k.
