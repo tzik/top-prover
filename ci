@@ -2,6 +2,7 @@
 cd "$(dirname "$0")"
 exec docker \
   run --rm \
+  -e HOME="/home/coq" \
   -w "/work" \
   -v "${PWD}:/work" \
   -u "$(id -u):$(id -g)" \
