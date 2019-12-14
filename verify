@@ -2,6 +2,11 @@
 
 cd "$(dirname "$0")"
 
+has_tty=
+if [ -t 1 ]; then
+  has_tty=1
+fi
+
 exec {fd}> README.md
 cat >&${fd} <<EOF
 ## [TopProver](http://top-prover.top/) Challenge Log
@@ -27,7 +32,9 @@ for i in tasks/*; do
   fi
   status='[CHECKING]'
   color=$'\e[36m'
-  printf '%s%s%s%s %s' "${clear}" "${color}" "${status}" "${reset_color}" "${desc}"
+  if [ -n "${has_tty}" ]; then
+    printf '%s%s%s%s %s' "${clear}" "${color}" "${status}" "${reset_color}" "${desc}"
+  fi
   if make -C"$i" > /dev/null 2>&1; then
     if grep 'Admitted\.' "${i}/Solution.v" > /dev/null 2>&1; then
       rv=1
@@ -46,7 +53,7 @@ for i in tasks/*; do
     color=$'\e[31m'
     status='[FAIL]'
   fi
-  if [ "$rv" -ne 0 ]; then
+  if [ "$rv" -ne 0 -o -z "${has_tty}" ]; then
     printf '%s%s%s%s %s\n' "${clear}" "${color}" "${status}" "${reset_color}" "${desc}"
   fi
   printf -- '- %s %s [%s](%s)\n' "${badge}" "${status}" "${desc}" "${i}/Solution.v" >&${fd}
