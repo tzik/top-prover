@@ -9,7 +9,7 @@
 - ✔ [PASS] [#5: n * S m = n + n * m](tasks/005/Solution.v)
 - ✔ [PASS] [#6: n < m \/ n = m \/ n > m](tasks/006/Solution.v)
 - ✔ [PASS] [#7: Product of n consecutive integers is divisible by n!](tasks/007/Solution.v)
-- ❌ [PENDING] [#8: Equivalent two quicksorts](tasks/008/Solution.v)
+- ✔ [PASS] [#8: Equivalent two quicksorts](tasks/008/Solution.v)
 - ✔ [PASS] [#9: forall l: list nat, l @ [0] <> []](tasks/009/Solution.v)
 - ✔ [PASS] [#10: Cumulative sum of list](tasks/010/Solution.v)
 - ❌ [PENDING] [#11: l1 <> l2 if l2 is an odd permutation of l1](tasks/011/Solution.v)
