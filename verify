@@ -1,63 +1,20 @@
 #!/bin/bash
+set -e
 
-cd "$(dirname "$0")"
-
-has_tty=
-if [ -t 1 ]; then
-  has_tty=1
+cd "$1"
+shift
+if [ ! -e "Makefile" ]; then
+  coq_makefile -f "_CoqProject" -o "Makefile"
 fi
 
-exec {fd}> README.md
-cat >&${fd} <<EOF
-## [TopProver](http://top-prover.top/) Challenge Log
-
-### Status
-
-EOF
-
-clear=$'\e[0G\e[0J'
-reset_color=$'\e[0m'
-for i in tasks/*; do
-  task_dir="$(dirname "$i")"
-  if [ ! -e "$i/Makefile" ]; then
-    pushd "$i" > /dev/null 2>&1
-      coq_makefile -f "_CoqProject" -o "Makefile"
-    popd > /dev/null 2>&1
-  fi
-
-  if [ -e "${i}/description" ]; then
-      desc="$(head -n1 "${i}/description")"
+lines="$(wc -l < Solution.v)"
+bytes="$(wc -c < Solution.v)"
+if make -C"${PWD}" "$@" > log 2>&1; then
+  if ! grep 'Admitted\.' "Solution.v" > /dev/null 2>&1; then
+    echo "0 PASS ${lines} ${bytes}" > status
   else
-      desc="$(basename "#${i}")"
+    echo "1 PENDING ${lines} ${bytes}" > status
   fi
-  status='[CHECKING]'
-  color=$'\e[36m'
-  if [ -n "${has_tty}" ]; then
-    printf '%s%s%s%s %s' "${clear}" "${color}" "${status}" "${reset_color}" "${desc}"
-  fi
-  if make -C"$i" > /dev/null 2>&1; then
-    if grep 'Admitted\.' "${i}/Solution.v" > /dev/null 2>&1; then
-      rv=1
-      badge=$'\U274c'
-      color=$'\e[36m'
-      status='[PENDING]'
-    else
-      rv=0
-      badge=$'\U2714'
-      color=$'\e[32m'
-      status='[PASS]'
-    fi
-  else
-    rv="$?"
-    badge=$'\U274c'
-    color=$'\e[31m'
-    status='[FAIL]'
-  fi
-  if [ "$rv" -ne 0 -o -z "${has_tty}" ]; then
-    printf '%s%s%s%s %s\n' "${clear}" "${color}" "${status}" "${reset_color}" "${desc}"
-  fi
-  printf -- '- %s %s [%s](%s)\n' "${badge}" "${status}" "${desc}" "${i}/Solution.v" >&${fd}
-done
-
-printf '\e[0G\e[0J'
-exec {fd}>&-
+else
+  echo "2 FAIL ${lines} ${bytes}" > status
+fi

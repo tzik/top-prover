@@ -15,6 +15,11 @@ Definition all (P : nat -> Prop) (xs : list nat) := fold_right and True (map P x
 Definition upper_bound (n : nat) := all (fun x => x <= n).
 Definition lower_bound (n : nat) := all (fun x => n <= x).
 
+Lemma len_0_nil (xs : list nat) : length xs <= 0 -> xs = nil.
+Proof.
+  intros; apply length_zero_iff_nil; omega.
+Qed.
+
 Lemma perm_dig : forall x xs ys, Permutation (A:=nat) (x :: xs) ys -> exists zs ws, ys = zs ++ x :: ws.
 Proof.
   intros.
@@ -39,38 +44,35 @@ Proof.
     specialize (IHxs H1); clear H1.
     destruct (perm_dig a xs ys H0); destruct H1.
     subst ys.
-    assert (Permutation (a :: x ++ x0) (x ++ a :: x0)) by apply Permutation_middle.
+    specialize (Permutation_middle x x0 a); intro.
     apply Permutation_sym in H1.
-    assert (Permutation (a :: xs) (a :: x ++ x0)).
-    * apply (Permutation_trans H0 H1); clear H1.
-    * apply Permutation_cons_inv in H2.
-      apply IHxs in H2.
-      clear IHxs H1 H0.
-      induction x.
-      + unfold all; simpl; fold (all P x0).
-        simpl in H2.
-        auto.
-      + unfold all; simpl; fold (all P (x ++ a :: x0)).
-        unfold all in H2; simpl in H2; fold (all P (x ++ x0)) in H2.
-        destruct H2.
-        auto.
+    apply (Permutation_trans H0) in H1; clear H0.
+    apply Permutation_cons_inv in H1.
+    apply IHxs in H1; clear IHxs.
+    induction x; [simpl in H1; split; auto|].
+    destruct H1.
+    split; [|apply IHx]; auto.
 Qed.
 
 Lemma perm_upper : forall n xs, upper_bound n xs -> forall ys, Permutation xs ys -> upper_bound n ys.
 Proof.
-  intro.
-  unfold upper_bound.
-  apply (perm_all (fun x => x <= n)).
+  intro; apply (perm_all _).
 Qed.
 
 Lemma perm_lower : forall n xs, lower_bound n xs -> forall ys, Permutation xs ys -> lower_bound n ys.
 Proof.
-  intro.
-  unfold lower_bound.
-  apply (perm_all (fun x => n <= x)).
+  intro; apply (perm_all _).
 Qed.
 
-Lemma sorted_app : forall xs n ys, upper_bound n xs -> lower_bound n ys -> sorted xs -> sorted ys -> sorted (xs ++ [n] ++ ys).
+Lemma sorted_tail : forall x xs, sorted (x :: xs) -> sorted xs.
+Proof.
+  destruct xs; [auto|].
+  intro H; destruct H.
+  auto.
+Qed.
+
+Lemma sorted_app : forall xs n ys, upper_bound n xs -> lower_bound n ys ->
+                                   sorted xs -> sorted ys -> sorted (xs ++ [n] ++ ys).
 Proof.
   intros.
   induction xs; simpl.
@@ -89,26 +91,21 @@ Proof.
       apply IHxs; auto.
 Qed.
 
-Lemma filter_short (P : nat -> bool) : forall xs, length (filter P xs) <= length xs.
+Lemma filter_short (k : nat) (xs : list nat)
+  : length xs <= k -> forall P, length (filter P xs) <= k.
 Proof.
+  intros.
+  refine (Nat.le_trans _ _ _ _ H); clear k H.
   induction xs; simpl; [auto|].
   destruct (P a); simpl; omega.
-Qed.
-
-Lemma move_to_left (x :nat) (ys zs : list nat) : Permutation (x :: ys ++ zs) (ys ++ x :: zs).
-Proof.
-  replace (x :: ys ++ zs) with (([x] ++ ys) ++ zs) by auto.
-  replace (ys ++ x :: zs) with ((ys ++ [x]) ++ zs) by (rewrite <- app_assoc; auto).
-  apply Permutation_app_tail.
-  apply Permutation_app_comm.
 Qed.
 
 Lemma filter_split (P Q : nat -> bool) : (forall x, P x = negb (Q x)) -> forall xs, Permutation xs (filter P xs ++ filter Q xs).
 Proof.
   intros.
   induction xs; simpl; [constructor|].
-  specialize (H a).
-  destruct (Q a); rewrite H; simpl; [|apply perm_skip; auto].
+  rewrite H.
+  destruct (Q a); simpl; [|apply perm_skip; auto].
   apply (perm_skip a) in IHxs.
   refine (Permutation_trans IHxs _).
   apply Permutation_middle.
@@ -119,92 +116,47 @@ Definition ge_n (n : nat) := fun x => n <=? x.
 Definition le_n (n : nat) := fun x => x <=? n.
 Definition gt_n (n : nat) := fun x => n <? x.
 
-Lemma lt_upper : forall n xs, upper_bound n (filter (lt_n n) xs).
+Lemma boundary : forall n xs, upper_bound n (filter (lt_n n) xs) /\
+                              upper_bound n (filter (le_n n) xs) /\
+                              lower_bound n (filter (gt_n n) xs) /\
+                              lower_bound n (filter (ge_n n) xs).
 Proof.
-  unfold upper_bound; unfold all.
+  unfold upper_bound; unfold lower_bound; unfold all.
+  unfold lt_n; unfold le_n; unfold gt_n; unfold ge_n.
   induction xs; simpl; [auto|].
-  unfold lt_n.
-  assert (a < n \/ a >= n) by omega.
-  destruct H.
-  assert (a <? n = true) by (apply Nat.ltb_lt; auto).
-  rewrite H0.
-  simpl.
-  split; [omega|auto].
-  apply Nat.ltb_ge in H.
-  rewrite H.
-  auto.
-Qed.
-
-Lemma le_upper : forall n xs, upper_bound n (filter (le_n n) xs).
-Proof.
-  unfold upper_bound; unfold all.
-  induction xs; simpl; [auto|].
-  unfold le_n.
-  assert (a <= n \/ a > n) by omega.
-  destruct H.
-  assert (a <=? n = true) by (apply Nat.leb_le; auto).
-  rewrite H0.
-  simpl.
-  split; [omega|auto].
-  apply Nat.leb_gt in H.
-  rewrite H.
-  auto.
-Qed.
-
-Lemma ge_lower : forall n xs, lower_bound n (filter (ge_n n) xs).
-Proof.
-  unfold lower_bound; unfold all.
-  induction xs; simpl; [auto|].
-  unfold ge_n.
-  assert (n <= a \/ n > a) by omega.
-  destruct H.
-  assert (n <=? a = true) by (apply Nat.leb_le; auto).
-  rewrite H0.
-  simpl.
-  split; [omega|auto].
-  apply Nat.leb_gt in H.
-  rewrite H.
-  auto.
-Qed.
-
-Lemma gt_lower : forall n xs, lower_bound n (filter (gt_n n) xs).
-Proof.
-  unfold lower_bound; unfold all.
-  induction xs; simpl; [auto|].
-  unfold gt_n.
-  assert (n < a \/ n >= a) by omega.
-  destruct H.
-  assert (n <? a = true) by (apply Nat.ltb_lt; auto).
-  rewrite H0.
-  simpl.
-  split; [omega|auto].
-  apply Nat.ltb_ge in H.
-  rewrite H.
-  auto.
+  destruct IHxs; destruct H0; destruct H1.
+  assert (C: a = n \/ a > n \/ a < n) by omega.
+  destruct C; [subst|destruct H3;repeat rewrite Nat.ltb_antisym]; simpl.
+  rewrite Nat.ltb_irrefl; rewrite Nat.leb_refl; simpl.
+  repeat split; auto.
+  all: repeat rewrite (proj2 (Nat.leb_gt _ _) H3).
+  all: repeat rewrite (proj2 (Nat.leb_le _ _) (Nat.lt_le_incl _ _ H3)).
+  all: simpl; repeat split; auto; omega.
 Qed.
 
 Lemma sort_mid : forall x ys z ws, sorted (x :: ys ++ z :: ws) -> x <= z.
 Proof.
-  induction ys; simpl; intros.
-  destruct H; auto.
-  destruct H.
-  destruct ys.
-  simpl in H0; simpl in IHys.
-  destruct H0.
-  omega.
-  simpl in IHys.
-  simpl in H0.
-  apply (IHys z ws).
+  induction ys; intros; destruct H; [auto|].
+  destruct ys; [destruct H0; omega|].
+  refine (IHys _ ws _); clear IHys.
   destruct H0.
   split; [omega|auto].
+Qed.
+
+Lemma qs1_inj : forall xs ys, quicksort1 xs ys -> quicksort1 xs ys \/ quicksort2 xs ys.
+Proof.
+  auto.
+Qed.
+
+Lemma qs2_inj : forall xs ys, quicksort2 xs ys -> quicksort1 xs ys \/ quicksort2 xs ys.
+Proof.
+  auto.
 Qed.
 
 Lemma qs1_split : forall n xs, Permutation xs (filter (lt_n n) xs ++ filter (ge_n n) xs).
 Proof.
   intros.
   apply filter_split.
-  intros.
-  unfold lt_n; unfold ge_n.
   apply Nat.ltb_antisym.
 Qed.
 
@@ -212,189 +164,96 @@ Lemma qs2_split : forall n xs, Permutation xs (filter (le_n n) xs ++ filter (gt_
 Proof.
   intros.
   apply filter_split.
-  intros.
-  unfold le_n; unfold gt_n.
   apply Nat.leb_antisym.
+Qed.
+
+Lemma qs_perm : forall xs ys, quicksort1 xs ys \/ quicksort2 xs ys -> Permutation xs ys.
+Proof.
+  intro; remember (length xs) as k.
+  assert (length xs <= k) by omega; clear Heqk.
+  revert xs H.
+  induction k; intros.
+  - apply len_0_nil in H; subst xs.
+    destruct H0; inversion_clear H; auto.
+  - destruct xs; [destruct H0; inversion_clear H0; auto|].
+    simpl in H; assert (length xs <= k) by omega; clear H.
+    destruct H0; inversion_clear H.
+    all: refine (Permutation_trans _ (Permutation_middle _ _ _)).
+    all: apply perm_skip.
+    1: refine (Permutation_trans (qs1_split n xs) _).
+    2: refine (Permutation_trans (qs2_split n xs) _).
+    all: refine (Permutation_app _ _).
+    all: apply IHk; [apply filter_short|]; auto.
 Qed.
 
 Lemma qs1_perm : forall xs ys, quicksort1 xs ys -> Permutation xs ys.
 Proof.
-  intro.
-  remember (length xs) as k.
-  assert (length xs <= k) by omega; clear Heqk.
-  revert xs H.
-  induction k; intros.
-  - apply Nat.le_0_r in H.
-    apply length_zero_iff_nil in H.
-    subst xs.
-    inversion H0; constructor.
-  - destruct xs; [inversion H0; constructor|].
-    simpl in H.
-    assert (length xs <= k) by omega; clear H.
-    inversion H0; clear H0.
-    subst head tail ys.
-    refine (Permutation_trans _ (move_to_left n l r)).
-    apply perm_skip.
-    fold (lt_n n) in H3; fold (ge_n n) in H5.
-    refine (Permutation_trans (qs1_split n xs) _).
-    remember (filter (lt_n n) xs) as xs_l.
-    remember (filter (ge_n n) xs) as xs_r.
-    refine (Permutation_app _ _); (apply IHk; [|auto]).
-    assert (length xs_l <= length xs) by (subst xs_l; apply filter_short); omega.
-    assert (length xs_r <= length xs) by (subst xs_r; apply filter_short); omega.
+  intros; apply qs_perm; auto.
 Qed.
-
 
 Lemma qs2_perm : forall xs ys, quicksort2 xs ys -> Permutation xs ys.
 Proof.
-  intro.
-  remember (length xs) as k.
-  assert (length xs <= k) by omega; clear Heqk.
-  revert xs H.
-  induction k; intros.
-  - apply Nat.le_0_r in H.
-    apply length_zero_iff_nil in H.
-    subst xs.
-    inversion H0; constructor.
-  - destruct xs; [inversion H0; constructor|].
-    simpl in H.
-    assert (length xs <= k) by omega; clear H.
-    inversion H0; clear H0.
-    subst head tail ys.
-    refine (Permutation_trans _ (move_to_left n l r)).
-    apply perm_skip.
-    fold (le_n n) in H3; fold (gt_n n) in H5.
-    refine (Permutation_trans (qs2_split n xs) _).
-    remember (filter (le_n n) xs) as xs_l.
-    remember (filter (gt_n n) xs) as xs_r.
-    refine (Permutation_app _ _); (apply IHk; [|auto]).
-    assert (length xs_l <= length xs) by (subst xs_l; apply filter_short); omega.
-    assert (length xs_r <= length xs) by (subst xs_r; apply filter_short); omega.
+  intros; apply qs_perm; auto.
 Qed.
 
-Lemma qs1_sorted : forall xs ys, quicksort1 xs ys -> sorted ys.
+Lemma qs_sorted : forall xs ys, quicksort1 xs ys \/ quicksort2 xs ys -> sorted ys.
 Proof.
   intro.
   remember (length xs) as k.
   assert (length xs <= k) by omega; clear Heqk.
   revert xs H.
   induction k; intros.
-  apply Nat.le_0_r in H.
-  apply length_zero_iff_nil in H.
-  subst xs; inversion H0; simpl; auto.
-  destruct xs; [inversion H0; simpl; auto|].
-  simpl in H; assert (length xs <= k) by omega; clear H.
-  inversion H0; clear H0.
-  subst head tail ys.
-  fold (lt_n n) in H3; fold (ge_n n) in H5.
-  remember (filter (lt_n n) xs) as xs_l.
-  remember (filter (ge_n n) xs) as xs_r.
-  apply sorted_app.
-  apply qs1_perm in H3.
-  apply (perm_upper n xs_l); [|auto].
-  subst xs_l; apply lt_upper.
-  apply qs1_perm in H5.
-  apply (perm_lower n xs_r); [|auto].
-  subst xs_r; apply ge_lower.
-  apply (IHk xs_l); [|auto].
-  assert (length xs_l <= length xs) by (subst xs_l; apply filter_short); omega.
-  apply (IHk xs_r); [|auto].
-  assert (length xs_r <= length xs) by (subst xs_r; apply filter_short); omega.
+  - apply len_0_nil in H; subst xs.
+    destruct H0; inversion_clear H; simpl; auto.
+  - destruct xs; [destruct H0; inversion_clear H0; simpl; auto|].
+    simpl in H; assert (length xs <= k) by omega; clear H.
+    destruct H0; inversion_clear H; apply sorted_app.
+    all: try clear l H0; try clear r H2.
+    all: try rename l into zs; try rename H0 into H.
+    all: try rename r into zs; try rename H2 into H.
+    1,2: apply qs1_perm in H.
+    5,6: apply qs2_perm in H.
+    1,5: apply (perm_upper n) in H; [auto|].
+    3,6: apply (perm_lower n) in H; [auto|].
+    1-4: apply boundary.
+    all: try apply qs1_inj in H; try apply qs2_inj in H.
+    all: apply IHk in H; [auto|].
+    all: apply filter_short; auto.
 Qed.
 
-Lemma qs2_sorted : forall xs ys, quicksort2 xs ys -> sorted ys.
+Lemma low_head : forall x xs, sorted (x :: xs) -> lower_bound x (x :: xs).
 Proof.
-  intro.
-  remember (length xs) as k.
-  assert (length xs <= k) by omega; clear Heqk.
-  revert xs H.
-  induction k; intros.
-  apply Nat.le_0_r in H.
-  apply length_zero_iff_nil in H.
-  subst xs; inversion H0; simpl; auto.
-  destruct xs; [inversion H0; simpl; auto|].
-  simpl in H; assert (length xs <= k) by omega; clear H.
-  inversion H0; clear H0.
-  subst head tail ys.
-  fold (le_n n) in H3; fold (gt_n n) in H5.
-  remember (filter (le_n n) xs) as xs_l.
-  remember (filter (gt_n n) xs) as xs_r.
-  apply sorted_app.
-  apply qs2_perm in H3.
-  apply (perm_upper n xs_l); [|auto].
-  subst xs_l; apply le_upper.
-  apply qs2_perm in H5.
-  apply (perm_lower n xs_r); [|auto].
-  subst xs_r; apply gt_lower.
-  apply (IHk xs_l); [|auto].
-  assert (length xs_l <= length xs) by (subst xs_l; apply filter_short); omega.
-  apply (IHk xs_r); [|auto].
-  assert (length xs_r <= length xs) by (subst xs_r; apply filter_short); omega.
+  unfold lower_bound; unfold all.
+  induction xs; simpl; [auto|].
+  intro H; destruct H.
+  split; [auto|split;[auto|]].
+  apply IHxs; clear IHxs.
+  destruct xs; simpl; [auto|].
+  split; [omega|destruct H0; auto].
 Qed.
 
 Lemma sort_uniq : forall xs ys, Permutation xs ys -> sorted xs -> sorted ys -> xs = ys.
 Proof.
-  induction xs; simpl; intros.
-  apply Permutation_nil in H.
-  auto.
-  assert (lower_bound a (a :: xs)).
-  clear H IHxs H1 ys.
-  unfold lower_bound; unfold all.
-  simpl; split; [omega|].
-  induction xs.
-  auto.
-  simpl.
-  destruct H0.
-  split; [auto|].
-  apply IHxs; clear IHxs.
-  destruct xs; [auto|].
-  destruct H0.
-  split; [omega|auto].
-
-  assert (lower_bound a ys).
-  refine (perm_lower _ _ H2 _ H).
-  clear H2.
-
+  induction xs; simpl; intros; [apply Permutation_nil in H; auto|].
   destruct (perm_dig a _ _ H); destruct H2.
   subst ys.
   destruct x.
-  simpl.
-  f_equal.
-  apply IHxs.
-  simpl in H.
-  apply Permutation_cons_inv in H.
-  auto.
-  destruct xs.
-  auto.
-  destruct H0.
-  auto.
-  simpl in H1.
-  destruct x0.
-  auto.
-  destruct H1.
-  auto.
-
-  assert (a <= n).
-  unfold lower_bound in H3; unfold all in H3; destruct H3; auto.
-  rewrite <- app_comm_cons in H1.
-  assert (n <= a) by (apply sort_mid in H1; auto).
-  assert (n = a) by omega; clear H2 H4.
-  subst n.
-  simpl.
-  f_equal.
-  apply IHxs.
-  simpl in H.
-  apply Permutation_cons_inv in H; auto.
-  destruct xs.
-  auto.
-  destruct H0.
-  auto.
-  remember (x ++ a :: x0) as t.
-  simpl in H1.
-  destruct t.
-  auto.
-  destruct H1.
-  auto.
+  - simpl in H; apply Permutation_cons_inv in H.
+    apply sorted_tail in H0.
+    apply sorted_tail in H1.
+    simpl; f_equal.
+    apply IHxs; auto.
+  - assert (a <= n).
+    * specialize (low_head _ _ H0); intro.
+      destruct (perm_lower _ _ H2 _ H); auto.
+    * rewrite <- app_comm_cons in H1.
+      assert (n <= a) by (apply sort_mid in H1; auto).
+      assert (n = a) by omega; clear H2 H3.
+      subst n; simpl; f_equal.
+      apply sorted_tail in H0.
+      apply sorted_tail in H1.
+      simpl in H; apply Permutation_cons_inv in H.
+      apply IHxs; auto.
 Qed.
 
 Theorem solution : task.
@@ -406,6 +265,6 @@ Proof.
     apply qs2_perm in H0.
     apply Permutation_sym in H.
     apply (Permutation_trans H H0).
-  - apply qs1_sorted in H; auto.
-  - apply qs2_sorted in H0; auto.
+  - apply (qs_sorted x); auto.
+  - apply (qs_sorted x); auto.
 Qed.

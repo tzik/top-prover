@@ -1,0 +1,55 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")"
+
+find tasks -mindepth 1 -maxdepth 1 -type d | xargs -L1 -P"$(nproc)" ./verify "$@"
+ret=0
+
+# Print result.
+has_tty=
+if [ -t 1 ]; then
+  has_tty=1
+fi
+reset_color=$'\e[0m'
+for i in tasks/*; do
+  id="$(basename "$i")"
+  read rv status lines bytes < "$i/status"
+  if [ -z "$has_tty" -o "${rv}" -ne 0 ]; then
+    if [ "${rv}" -eq 0 ]; then
+      color=$'\e[32m'
+    elif [ "${rv}" -eq 1 ]; then
+      color=$'\e[36m'
+    else
+      color=$'\e[31m'
+    fi
+
+    echo "${color}[${status}]${reset_color} $(cat "$i/description")"
+    if [ "${rv}" -eq 2 ]; then
+      cat "${i}/log"
+      ret=1
+    fi
+  fi
+done
+
+# Update README.md
+{
+cat <<EOF
+## [TopProver](http://top-prover.top/) Challenge Log
+
+### Status
+
+EOF
+  for i in tasks/*; do
+    read rv status lines bytes < "$i/status"
+    desc="$(cat "$i/description")"
+    if [ "${rv}" -eq 0 ]; then
+      badge=$'\U2714'
+    else
+      badge=$'\U274c'
+    fi
+    echo "- ${badge} [${status}] [${desc}](${i}/Solution.v)"
+  done
+} > README.md
+
+exit "${ret}"
