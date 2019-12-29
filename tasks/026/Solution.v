@@ -5,7 +5,6 @@ Proof.
   unfold task.
   intros.
   do 2 (try destruct m; try destruct n; try omega).
-  exfalso.
   simpl in H.
   rewrite Nat.add_comm in H.
   inversion H.

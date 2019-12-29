@@ -1,44 +1,41 @@
-Require Import Problem List Omega.
+Require Import Problem PeanoNat List Omega.
+Import ListNotations.
 
-Lemma decomp (xs : list nat) : xs = nil \/ (exists ys zs, xs = ys ++ (0 :: nil) ++ zs) \/ (exists ys, xs = map S ys).
+Lemma decomp (xs : list nat)
+  : xs = nil \/
+    (exists ys zs, xs = ys ++ [0] ++ zs) \/
+    (exists ys, xs = map S ys).
 Proof.
-  induction xs; [auto|].
-  destruct IHxs.
+  induction xs; [auto|right].
+  destruct IHxs; [|destruct H].
   - subst xs.
-    right.
-    destruct a.
-    * left; exists nil; exists nil; auto.
-    * right; exists (a :: nil); simpl; auto.
-  - right.
-    destruct a.
-    * left; exists nil; exists xs; simpl; auto.
-    * destruct H.
-      + destruct H; destruct H.
-        left; exists (S a :: x); exists x0.
-        rewrite H.
-        auto.
-      + right.
-        destruct H.
-        subst xs.
-        exists (a :: x).
-        simpl; auto.
+    destruct a; [left|right].
+    * exists nil; exists nil; auto.
+    * exists [a]; auto.
+  - left.
+    destruct H; destruct H.
+    subst xs.
+    exists (a :: x); exists x0.
+    auto.
+  - destruct a; [left|right].
+    * exists nil; exists xs; auto.
+    * destruct H; exists (a :: x); subst xs; auto.
 Qed.
 
 Definition maximum := fold_right max 0.
 
-Lemma c2_app : forall xs ys, compute2 (xs ++ (0 :: nil) ++ ys) = compute2 xs + compute2 ys.
+Lemma c2_app : forall xs ys, compute2 (xs ++ [0] ++ ys) = compute2 xs + compute2 ys.
 Proof.
   induction xs.
   - simpl.
-    destruct ys; simpl; auto.
+    destruct ys; auto.
   - destruct xs.
     * simpl.
       rewrite Nat.min_0_r.
       destruct ys; simpl; omega.
     * intros.
-      rewrite <- app_comm_cons.
-      rewrite <- app_comm_cons.
-      assert (forall x y zs, compute2 (x :: y :: zs) = x - min x y + compute2 (y :: zs)) by (simpl; auto).
+      do 2 rewrite <- app_comm_cons.
+      assert (forall x y zs, compute2 (x :: y :: zs) = x - min x y + compute2 (y :: zs)) by auto.
       repeat rewrite H.
       rewrite app_comm_cons.
       rewrite IHxs.
@@ -64,11 +61,11 @@ Qed.
 
 Lemma c2_succ : forall x xs, compute2 (map S (x :: xs)) = S (compute2 (x :: xs)).
 Proof.
-  intros; generalize x; clear x.
+  intros; revert x.
   induction xs; [simpl; auto|].
   intros.
-  specialize (IHxs a).
-  assert (forall y z ws, compute2 (y :: z :: ws) = compute2 (z :: ws) + (y - min y z)) by (intros; simpl; omega).
+  assert (forall y z ws, compute2 (y :: z :: ws) = compute2 (z :: ws) + (y - min y z))
+    by (intros; simpl; omega).
   rewrite H.
   rewrite <- Nat.add_succ_l.
   rewrite <- IHxs.
@@ -93,9 +90,9 @@ Proof.
   - simpl.
     rewrite Nat.max_0_r.
     auto.
-  - replace (S (maximum (x :: a :: xs))) with (max (S x) (S (maximum (a :: xs)))) by (simpl; auto).
+  - replace (S (maximum (x :: a :: xs))) with (max (S x) (S (maximum (a :: xs)))) by auto.
     rewrite <- IHxs.
-    simpl; auto.
+    auto.
 Qed.
 
 Theorem solution: task.
@@ -109,29 +106,25 @@ Proof.
 
   induction k; intros.
   - assert (length l = 0) by omega; clear Heqk.
-    destruct l.
-    * simpl; constructor.
-    * simpl in H; discriminate.
-  - destruct (decomp l).
-    * subst l; simpl; constructor.
-    * destruct H.
-      + destruct H; destruct H.
-        subst l.
-        rewrite c2_app.
-        repeat rewrite length_hom in Heqk.
-        repeat rewrite maximum_hom in Heqk.
-        simpl in Heqk.
-        apply c1_app; apply IHk.
-        -- specialize (Nat.le_max_l (maximum x) (maximum x0)); omega.
-        -- specialize (Nat.le_max_r (maximum x) (maximum x0)); omega.
-      + destruct H; subst l.
-        destruct x.
-        simpl; constructor.
-        rewrite c2_succ.
-        rewrite map_S.
-        apply c1_succ.
-        apply IHk.
-        rewrite length_map in Heqk.
-        rewrite maximum_S in Heqk.
-        omega.
+    apply length_zero_iff_nil in H; subst.
+    constructor.
+  - destruct (decomp l); [subst l;constructor|destruct H].
+    * destruct H; destruct H.
+      subst l.
+      rewrite c2_app.
+      repeat rewrite length_hom in Heqk.
+      repeat rewrite maximum_hom in Heqk.
+      simpl in Heqk.
+      apply c1_app; apply IHk.
+      + specialize (Nat.le_max_l (maximum x) (maximum x0)); omega.
+      + specialize (Nat.le_max_r (maximum x) (maximum x0)); omega.
+    * destruct H; subst l.
+      destruct x; [constructor|].
+      rewrite c2_succ.
+      rewrite map_S.
+      apply c1_succ.
+      apply IHk.
+      rewrite length_map in Heqk.
+      rewrite maximum_S in Heqk.
+      omega.
 Qed.

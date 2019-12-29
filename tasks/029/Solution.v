@@ -5,6 +5,5 @@ Proof.
   unfold task.
   split; intros.
   - apply (R_trans x y z); auto.
-  - apply H.
-    apply R_refl.
+  - apply H; apply R_refl.
 Qed.

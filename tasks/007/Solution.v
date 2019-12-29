@@ -38,10 +38,10 @@ Proof.
   - apply Nat.eq_add_0 in H; destruct H.
     subst m n; exists 1; auto.
   - destruct m; simpl; destruct n.
-    + discriminate.
-    + exists 1; omega.
-    + exists 1; simpl; omega.
-    + assert (m + S n = o) by omega.
+    * discriminate.
+    * exists 1; omega.
+    * exists 1; simpl; omega.
+    * assert (m + S n = o) by omega.
       assert (S m + n = o) by omega.
       clear H.
       destruct (IHo m (S n) H0) as [x]; clear H0.

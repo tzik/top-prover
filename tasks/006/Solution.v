@@ -2,7 +2,7 @@ Require Import Problem Omega.
 
 Theorem solution : task.
 Proof.
-  unfold Problem.task.
+  unfold task.
   intros.
   omega.
 Qed.

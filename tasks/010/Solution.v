@@ -11,8 +11,8 @@ Proof.
     simpl.
     intros.
     rewrite <- (IHl1 l2 (a0 + a) (b + n)).
-    replace (a0 + b + (a + n)) with (a0 + a + (b + n)) by omega.
-    auto.
+    do 2 f_equal.
+    omega.
 Qed.
 
 Theorem solution: task.

@@ -12,12 +12,11 @@ Proof.
   unfold task; unfold is_expressible_in_binary_notation.
   intro.
   remember n as m.
-  rewrite Heqm.
-  assert (n <= m) by omega; clear Heqm.
-  revert n H.
-  induction m; intros.
-  - apply Nat.le_0_r in H; subst n; constructor.
-  - destruct n; [constructor|].
-    destruct (lsb (S n)).
-    destruct H0; rewrite H0; constructor; apply IHm; omega.
+  assert (m <= n) by omega; clear Heqm.
+  revert m H.
+  induction n; intros.
+  - apply Nat.le_0_r in H; subst m; constructor.
+  - destruct m; [constructor|].
+    destruct (lsb (S m)).
+    destruct H0; rewrite H0; constructor; apply IHn; omega.
 Qed.

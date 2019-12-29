@@ -8,6 +8,5 @@ Proof.
   destruct (f_surjective failcase).
   specialize (H x).
   unfold failcase in H.
-  remember (f x x).
-  destruct b; discriminate.
+  destruct (f x x); discriminate.
 Qed.

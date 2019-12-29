@@ -1,6 +1,7 @@
 Require Import Problem PeanoNat Omega.
 
-Lemma lemma (n : nat) (l : list nat) : list_in l n = false -> List.count_occ Nat.eq_dec l n = 0.
+Lemma lemma (n : nat) (l : list nat)
+  : list_in l n = false -> List.count_occ Nat.eq_dec l n = 0.
 Proof.
   induction l; simpl; [auto|].
   destruct (Nat.eq_dec a n).
@@ -13,7 +14,8 @@ Proof.
     auto.
 Qed.
 
-Lemma lemma2 (l : list nat) (n : nat) : list_in l n = false -> list_in (unique l) n = false.
+Lemma lemma2 (l : list nat) (n : nat)
+  : list_in l n = false -> list_in (unique l) n = false.
 Proof.
   induction l; simpl; [auto|].
   destruct (Nat.eq_dec n a).
@@ -40,17 +42,11 @@ Proof.
     destruct b; [auto|].
     clear IHl.
     simpl.
-    destruct (Nat.eq_dec a a).
-    f_equal.
-    rewrite lemma.
-    auto.
-    apply lemma2.
-    auto.
-    contradict n.
-    auto.
+    destruct (Nat.eq_dec a a); [|contradiction].
+    rewrite lemma; [auto|].
+    apply lemma2; auto.
   - simpl in H.
-    specialize (proj2 (Nat.eqb_neq n a) n0); intro.
-    rewrite H0 in H.
+    rewrite (proj2 (Nat.eqb_neq _ _) n0) in H.
     specialize (IHl H).
     destruct (list_in l a); [auto|].
     simpl.

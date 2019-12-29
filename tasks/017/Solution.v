@@ -1,6 +1,7 @@
 Require Import Problem List PeanoNat.
+Import ListNotations.
 
-Lemma lemma : forall xs a n, count_occ Nat.eq_dec (xs ++ a :: nil) n = count_occ Nat.eq_dec (a :: xs) n.
+Lemma lemma : forall xs a n, count_occ Nat.eq_dec (xs ++ [a]) n = count_occ Nat.eq_dec (a :: xs) n.
 Proof.
   intros.
   induction xs; [auto|].
@@ -16,7 +17,7 @@ Proof.
   unfold task.
   intros.
   induction l; [auto|].
-  replace (rev (a :: l)) with (rev l ++ a :: nil) by auto.
+  replace (rev (a :: l)) with (rev l ++ [a]) by auto.
   rewrite lemma.
   simpl.
   rewrite IHl.

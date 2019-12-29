@@ -11,9 +11,6 @@ Proof.
   induction n; intros.
   - apply Nat.le_0_r in H; subst m; auto.
   - do 2 (destruct m; [auto|]).
-    assert (m <= n) by omega.
-    apply IHn in H0.
     simpl.
-    rewrite H0.
-    omega.
+    rewrite IHn; omega.
 Qed.

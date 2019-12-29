@@ -4,7 +4,7 @@ Theorem solution : task.
 Proof.
   unfold task.
   intros.
-  remember (f b) as x; remember (f (negb b)) as y.
-  destruct b; destruct x; repeat rewrite <- Heqx; auto.
-  all: simpl in Heqy; rewrite <- Heqy; destruct y; auto.
+  remember (f true) as x; remember (f false) as y.
+  destruct b; destruct x; destruct y.
+  all: repeat (try rewrite <- Heqx; try rewrite <- Heqy); auto.
 Qed.

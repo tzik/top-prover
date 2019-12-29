@@ -1,7 +1,7 @@
-Require Import Problem BinNums BinInt Omega Znumtheory.
-Require ZArith.
+Require Import Problem Omega Znumtheory.
+Import ZArith.Zdiv.
 
-Lemma prime_not_0 : forall p, Znumtheory.prime p -> p <> 0.
+Lemma prime_not_0 : forall p, prime p -> p <> 0.
 Proof.
   intros.
   contradict H.
@@ -21,13 +21,13 @@ Qed.
 Lemma transpose (p a b : Z) : p > 0 -> a mod p = b mod p -> (a - b) mod p = 0.
 Proof.
   intros.
-  rewrite (ZArith.Zdiv.Zmod_eq a p H) in H0.
-  rewrite (ZArith.Zdiv.Zmod_eq b p H) in H0.
+  rewrite (Zmod_eq a p H) in H0.
+  rewrite (Zmod_eq b p H) in H0.
   assert (forall x y z w : Z, x - z = y - w -> x - y = z - w) by (intros; omega).
   apply (H1 a b (a / p * p) (b / p * p)) in H0; clear H1.
   rewrite <- Z.mul_sub_distr_r in H0.
   rewrite H0.
-  apply ZArith.Zdiv.Z_mod_mult.
+  apply Z_mod_mult.
 Qed.
 
 Theorem solution: task.
@@ -35,16 +35,14 @@ Proof.
   unfold task.
   intros.
   destruct H0; destruct H1; destruct H2.
-  apply transpose in H3.
+  apply transpose in H3; [|omega].
   rewrite <- Z.mul_sub_distr_r in H3.
-  apply zero_factor in H3.
+  apply zero_factor in H3; [|auto].
   destruct H3.
-  assert (0 <= k1 - k2 < p \/ 0 <= k2 - k1 < p) by omega.
-  destruct H7.
-  rewrite ZArith.Zdiv.Zmod_small in H3; omega.
-  apply ZArith.Zdiv.Z_mod_zero_opp_full in H3.
-  rewrite ZArith.Zdiv.Zmod_small in H3; omega.
-  rewrite ZArith.Zdiv.Zmod_small in H3; omega.
-  auto.
-  omega.
+  - assert (0 <= k1 - k2 < p \/ 0 <= k2 - k1 < p) by omega.
+    destruct H7.
+    * rewrite Zmod_small in H3; omega.
+    * apply Z_mod_zero_opp_full in H3.
+      rewrite Zmod_small in H3; omega.
+  - rewrite Zmod_small in H3; omega.
 Qed.
