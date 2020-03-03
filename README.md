@@ -42,3 +42,4 @@
 - ✔ [PASS] [#38: Midpoint](tasks/038/Solution.v)
 - ✔ [PASS] [#39: Boolean-hole principle revisited](tasks/039/Solution.v)
 - ✔ [PASS] [#40: Binary search](tasks/040/Solution.v)
+- ✔ [PASS] [#ex1: Peirce's Law](tasks/ex001/Solution.v)
