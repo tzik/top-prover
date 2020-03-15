@@ -42,4 +42,8 @@
 - ✔ [PASS] [#38: Midpoint](tasks/038/Solution.v)
 - ✔ [PASS] [#39: Boolean-hole principle revisited](tasks/039/Solution.v)
 - ✔ [PASS] [#40: Binary search](tasks/040/Solution.v)
+- ✔ [PASS] [#42: eq_sym?](tasks/042/Solution.v)
+- ✔ [PASS] [#43: Not a sum of squares](tasks/043/Solution.v)
+- ✔ [PASS] [#44: Postorder traversal](tasks/044/Solution.v)
+- ✔ [PASS] [#45: Cycle detection](tasks/045/Solution.v)
 - ✔ [PASS] [#ex1: Peirce's Law](tasks/ex001/Solution.v)

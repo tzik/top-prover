@@ -37,6 +37,7 @@ cat > "${task_dir}/.gitignore" <<EOF
 /*.vo
 /*.vok
 /*.vos
+/.lia.cache
 /Makefile
 /Makefile.conf
 /main.html
