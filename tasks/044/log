@@ -1,3 +1,5 @@
 make: Entering directory '/home/tzik/work/top-prover/tasks/044'
-make[1]: Nothing to be done for 'real-all'.
+COQDEP VFILES
+COQC Solution.v
+COQC Checker.v
 make: Leaving directory '/home/tzik/work/top-prover/tasks/044'

@@ -40,5 +40,6 @@ cat > "${task_dir}/.gitignore" <<EOF
 /.lia.cache
 /Makefile
 /Makefile.conf
+/log
 /main.html
 EOF
