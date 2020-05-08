@@ -6,5 +6,5 @@ exec docker \
   -w "/work" \
   -v "${PWD}:/work" \
   -u "$(id -u):$(id -g)" \
-  mathcomp/mathcomp:1.9.0-coq-8.9 \
+  mathcomp/mathcomp:1.11.0-coq-8.11 \
   "./verify_all" "$@"
